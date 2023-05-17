@@ -4,6 +4,7 @@
 /public/hot
 /public/storage
 /storage/dbdata
+/storage/redis
 /storage/*.key
 /vendor
 .env
