@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+
+  # Database server
+  database:
+    container_name: database
+    image: mysql:latest
+    ports:
+      - 3306:3306 #bind local port 3306 to container port 3306
+    environment:
+      MYSQL_DB: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./storage/dbdata:/var/lib/mysql
