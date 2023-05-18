@@ -10,7 +10,7 @@ teardown:
 	rm -f .env
 
 up:
-	docker compose up 
+	docker compose up -d
 
 down:
 	docker compose down
@@ -20,7 +20,7 @@ rebuild:
 	docker-compose up -d --force-recreate --build
 
 db_shell:
-	docker exec -it database /bin/bash
+	docker exec -it db_server /bin/bash
 
 shell:
-	docker exec -it application /bin/bash
+	docker exec -it app_server /bin/bash
