@@ -1,9 +1,13 @@
 version: "3.9"
 
+networks:
+  network:
+    driver: "bridge"
+
 services:
   #PHP service
   php:
-    container_name: application
+    container_name: app_server
     build:
       context: .
       target: php
@@ -21,12 +25,14 @@ services:
     depends_on:
       - database
       - redis
+    networks:
+      - network
 
 
 
   # Database server
   database:
-    container_name: database
+    container_name: db_server
     image: mysql:latest
     ports:
       - 3306:3306 #bind local port 3306 to container port 3306
@@ -37,10 +43,12 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./storage/dbdata:/var/lib/mysql
+    networks:
+      - network
 
   # Redis server
   redis:
-    container_name: redis
+    container_name: redis_server
     image: redis:alpine
     command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
     env_file:
@@ -49,5 +57,56 @@ services:
       - "6379:6379"
     volumes:
       - ./storage/redis/data:/data
-    # networks:
-    #   - optix
+    networks:
+      - network
+
+  # Queue Server
+  queue:
+    container_name: queue_server
+    build:
+      context: .
+      target: php
+      args:
+        - APP_ENV=${APP_ENV}
+    environment:
+      - APP_ENV=${APP_ENV}
+      - CONTAINER_ROLE=queue
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - network
+
+
+  #Node Server
+  node:
+    container_name: node_server
+    build:
+      context: .
+    volumes:
+      - .:/usr/src
+      - ./node_modules:/usr/src/node_modules
+    networks:
+      - network
+
+  # Web Socket
+  websocket:
+    container_name: websocket_server
+    build:
+      context: .
+      target: php
+      args:
+        - APP_ENV=${APP_ENV}
+    environment:
+      - APP_ENV=${APP_ENV}
+      - CONTAINER_ROLE=websocket
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www/ #mount current directory to /var/www
+    ports:
+      - "6001:6001" # bind port 6001 to container 6001
+    depends_on:
+      - database
+      - redis
+    networks:
+      - network
