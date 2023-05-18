@@ -33,16 +33,6 @@ RUN pecl install -o -f redis \
     && rm -rf /tmp/pear \ 
     && docker-php-ext-enable redis
 
-# install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh
-RUN bash nodesource_setup.sh
-RUN apt-get update && apt-get install -y \
-    nodejs \
-    yarn \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN rm nodesource_setup.sh
-
 # Specify working directory
 WORKDIR /var/www
 
@@ -57,6 +47,25 @@ ENV PORT=8000
 # specify entry point to run bash scripts
 # this bash scripts contains commands running migrations and others
 ENTRYPOINT [ "docker-files/entrypoint.sh" ]
+
+# =================================================================
+# install nodejs
+RUN curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh
+RUN bash nodesource_setup.sh
+RUN apt-get update && apt-get install -y \
+    nodejs \
+    yarn \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN rm nodesource_setup.sh
+
+WORKDIR /var/www
+COPY . .
+
+RUN npm install --global cross-env
+RUN npm install
+
+VOLUME /var/www/node_modules
 
 
 
