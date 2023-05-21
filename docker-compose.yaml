@@ -1,0 +1,93 @@
+version: '3.9'
+
+networks:
+  test:
+    driver: "bridge"
+    
+services:
+
+#PHP-FPM service
+  app:
+    build: .
+    container_name: test
+    restart: unless-stopped
+    tty: true
+    working_dir: /var/www/test
+    environment:
+      - APP_ENV=${APP_ENV}
+      - CONTAINER_ROLE=app
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./:/var/www/test
+      - ./docker-files/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - test
+
+# NGINX service
+  webserver: 
+    image: nginx
+    container_name: test_webserver
+    restart: unless-stopped
+    ports:
+      - '8000:80'
+      - '8001:443'
+    volumes:
+      - ./:/var/www/test
+      - ./docker-files/nginx/conf.d/app.conf:/etc/nginx/conf.d/app.conf
+    networks:
+      - test
+  db:
+    # platform: linux/x86_64
+    container_name: test_db
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    restart: always
+    ports:
+      -  "3306:3306"
+
+    volumes:
+      -  ./storage/dbdata:/var/lib/mysql
+      -  ./docker-files/mysql/mysql.cnf:/etc/mysql/mysql.cnf
+    networks:
+      - test
+
+  redis:
+    container_name: test_redis
+    image: redis:alpine
+    env_file:
+      - .env
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./storage/redis/data:/data
+    networks:
+      - test
+
+  # Node Server
+  node:
+    container_name: node_server
+    build: .
+    volumes:
+      - .:/usr/src
+      - ./node_modules:/usr/src/node_modules
+    networks:
+      - test
+
+  # Queue Server
+  queue:
+    container_name: queue_server
+    build: .
+    environment:
+      - APP_ENV=${APP_ENV}
+      - CONTAINER_ROLE=queue
+    working_dir: /var/www/test
+    volumes:
+      - ./:/var/www/test
+    networks:
+      - test
