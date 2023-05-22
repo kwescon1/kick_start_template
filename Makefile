@@ -1,31 +1,6 @@
 # setup a project
 .RECIPEPREFIX +=
 
-<<<<<<< HEAD
-setup:
-	docker compose up -d --build
-
-teardown:
-	docker compose down
-	docker compose rm -f
-	rm -f .env
-
-up:
-	docker compose up -d
-
-down:
-	docker compose down
-
-
-rebuild:
-	docker-compose up -d --force-recreate --build
-
-db_shell:
-	docker exec -it db_server /bin/bash
-
-shell:
-	docker exec -it app_server /bin/bash
-=======
 USER=ubuntu
 CONTAINER_PHP=laradock
 CONTAINER_DB=laradock_db
@@ -50,11 +25,6 @@ teardown: down remove_containers ## destroy all containers
 	@if [ -d "$(CONTAINER_REDIS)" ]; then rm -r "$(VOLUME_REDIS)"; fi
 
 	@if [ -f .env ]; then rm -f .env; fi
-# teardown: down remove_containers ## destroy all containers
-# 	rm -f .env
-# 	rm -r node_modules
-# 	rm -r storage/dbdata
-# 	rm -r storage/redis
 
 remove_containers: ## removes all stopped containers created by a docker compose file.
 	@docker compose rm -f
@@ -132,4 +102,3 @@ install-xdebug: ## Install xdebug locally.
 	docker exec ${CONTAINER_PHP} pecl install xdebug
 	docker exec ${CONTAINER_PHP} /usr/local/bin/docker-php-ext-enable xdebug.so
 
->>>>>>> origin/main
