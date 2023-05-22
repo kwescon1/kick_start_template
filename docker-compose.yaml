@@ -1,0 +1,69 @@
+version: '3.9'
+
+networks:
+  laradock:
+    driver: "bridge"
+    
+services:
+
+#PHP-FPM service
+  app:
+    build: .
+    container_name: laradock
+    restart: unless-stopped
+    tty: true
+    working_dir: /var/www/laradock
+    environment:
+      - APP_ENV=${APP_ENV}
+      - CONTAINER_ROLE=app
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./:/var/www/laradock
+      - ./docker-files/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - laradock
+
+# NGINX service
+  webserver: 
+    image: nginx
+    container_name: laradock_webserver
+    restart: unless-stopped
+    ports:
+      - '8000:80'
+      - '8001:443'
+    volumes:
+      - ./:/var/www/laradock
+      - ./docker-files/nginx/conf.d/app.conf:/etc/nginx/conf.d/app.conf
+    networks:
+      - laradock
+  db:
+    container_name: laradock_db
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    restart: always
+    ports:
+      -  "3306:3306"
+
+    volumes:
+      -  ./storage/dbdata:/var/lib/mysql
+      -  ./docker-files/mysql/mysql.cnf:/etc/mysql/mysql.cnf
+    networks:
+      - laradock
+
+  redis:
+    container_name: laradock_redis
+    image: redis:alpine
+    env_file:
+      - .env
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./storage/redis/data:/data
+    networks:
+      - laradock
