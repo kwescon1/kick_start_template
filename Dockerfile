@@ -1,14 +1,7 @@
-# FROM nginx
 FROM php:8.2-fpm
 
-# Set php op_cache
-ENV PHP_OPCACHE_ENABLE=1
-ENV PHP_OPCACHE_ENABLE_CLI=0
-ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
-ENV PHP_OPCAHCE_REVALIDATE_FREQ=1
-
 # Set working directory
-WORKDIR /var/www/test
+WORKDIR /var/www/laradock
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -55,7 +48,3 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN rm nodesource_setup.sh
-
-# specify entry point to run bash scripts
-# this bash scripts contains commands running migrations and others
-# ENTRYPOINT [ "docker-files/entrypoint.sh" ]
